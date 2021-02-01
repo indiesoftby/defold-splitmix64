@@ -1,0 +1,38 @@
+local TINT_GREEN = vmath.vector4(0.3, 0.9, 0.3, 1)
+local TINT_RED = vmath.vector4(0.9, 0.3, 0.3, 1)
+local EPSILON = 0.00001
+
+function init(self)
+    msg.post("@render:", "use_fixed_fit_projection", { near = -1, far = 1 })
+end
+
+local function equal_rng(actual, expected, label_url)
+    if actual == expected then
+        label.set_text(label_url, tostring(actual) .. " == " .. tostring(expected))
+        go.set(label_url, "color", TINT_GREEN)
+    else
+        label.set_text(label_url, tostring(actual) .. " ~= " .. tostring(expected))
+        go.set(label_url, "color", TINT_RED)
+    end
+end
+
+local function almost_equal_rng(actual, expected, label_url)
+    if math.abs(actual - expected) < EPSILON then
+        label.set_text(label_url, tostring(actual) .. " == " .. tostring(expected))
+        go.set(label_url, "color", TINT_GREEN)
+    else
+        label.set_text(label_url, tostring(actual) .. " ~= " .. tostring(expected))
+        go.set(label_url, "color", TINT_RED)
+    end
+end
+
+function update(self, dt)
+    splitmix64.randomseed(1)
+
+    equal_rng(splitmix64.random(1000), 466, "/tests#test1")
+    equal_rng(splitmix64.random(5, 10000), 4884, "/tests#test2")
+    almost_equal_rng(splitmix64.random(), 0.9710027535868, "/tests#test3")
+    equal_rng(splitmix64.random(-1000000, -5000), -952085, "/tests#test4")
+    equal_rng(splitmix64.random(1), 1, "/tests#test5")
+    almost_equal_rng(splitmix64.random(), 0.76289439191176, "/tests#test6")
+end

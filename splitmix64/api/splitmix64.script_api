@@ -1,0 +1,23 @@
+- name: splitmix64
+  type: table
+  desc: Functions for interacting with the SplitMix64 native extension
+  members:
+  - name: random
+    type: function
+    desc: When called without arguments, returns a uniform pseudo-random real number in the range [0,1). When called with an integer number m, splitmix64.random returns a uniform pseudo-random integer in the range [1, m]. When called with two integer numbers m and n, splitmix64.random returns a uniform pseudo-random integer in the range [m, n].
+    parameters:
+    - name: m
+      optional: true
+      type: number
+    - name: n
+      optional: true
+      type: number
+    returns:
+    - name: value
+      type: number
+  - name: randomseed
+    type: function
+    desc: "Sets x as the \"seed\" for the pseudo-random generator: equal seeds produce equal sequences of numbers."
+    parameters:
+    - name: x
+      type: number
