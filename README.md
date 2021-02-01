@@ -1,6 +1,6 @@
 # SplitMix64 RNG for Defold
 
-This extension wraps SplitMix64 in a simple Lua API for the [Defold](https://defold.com/) game engine. The SplitMix64 algo is from [http://prng.di.unimi.it/splitmix64.c](http://prng.di.unimi.it/splitmix64.c).
+This extension wraps SplitMix64 in a simple Lua API for the [Defold](https://defold.com/) game engine. The SplitMix64 algo is from [http://prng.di.unimi.it/splitmix64.c](http://prng.di.unimi.it/splitmix64.c), and it's a very fast generator passing BigCrush.
 
 ## Installation
 
