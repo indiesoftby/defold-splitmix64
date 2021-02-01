@@ -2,6 +2,8 @@
 
 This extension wraps SplitMix64 in a simple Lua API for the [Defold](https://defold.com/) game engine. The SplitMix64 algo is from [http://prng.di.unimi.it/splitmix64.c](http://prng.di.unimi.it/splitmix64.c), and it's a very fast generator passing BigCrush.
 
+[**Online demo 🐲**](https://indiesoftby.github.io/defold-splitmix64/index.html)
+
 ## Installation
 
 You can use it in your own project by adding this project as a [Defold library dependency](http://www.defold.com/manuals/libraries/). Open your `game.project` file and in the dependencies field under project add:
