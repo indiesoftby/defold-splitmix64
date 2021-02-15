@@ -88,7 +88,7 @@ static void LuaInit(lua_State *L) {
     assert(top == lua_gettop(L));
 }
 
-dmExtension::Result InitializeExtension(dmExtension::Params *params) {
+static dmExtension::Result InitializeExtension(dmExtension::Params *params) {
     LuaInit(params->m_L);
     return dmExtension::RESULT_OK;
 }
