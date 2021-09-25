@@ -1,10 +1,12 @@
+[![SplixMix64 Logo](cover.png)](https://github.com/indiesoftby/defold-splitmix64)
+
 # SplitMix64 PRNG for Defold
 
 This extension wraps SplitMix64 in a simple Lua API for the [Defold](https://defold.com/) game engine. The SplitMix64 algo is from [http://prng.di.unimi.it/splitmix64.c](http://prng.di.unimi.it/splitmix64.c), and it's a very fast generator passing BigCrush.
 
 **The main idea of this extension is to get the same random numbers from the same seeds on ALL platforms supported by Defold.**
 
-[**Web build 🐲**](https://indiesoftby.github.io/defold-splitmix64/index.html)
+Take a look at [**the web build 🐲**](https://indiesoftby.github.io/defold-splitmix64/index.html) of the included example, which tests random values from the same seeds.
 
 > Splitmix64 is the default pseudo-random number generator algorithm in Java and is included / available in many other languages. It uses a fairly simple algorithm that, though it is considered to be poor for cryptographic purposes, is **very fast to calculate**, and is **"good enough" for many random number needs**. It passes several fairly rigorous PRNG "fitness" tests that some more complex algorithms fail.
 
