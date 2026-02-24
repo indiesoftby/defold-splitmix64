@@ -22,6 +22,9 @@ clear_color_blue = 0.1
 clear_color_red = 0.1
 clear_color_green = 0.1
 
+[input]
+game_binding = /builtins/input/all.input_binding
+
 [android]
 package = com.splitmix64.example
 

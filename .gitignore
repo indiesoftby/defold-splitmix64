@@ -7,6 +7,7 @@ Thumbs.db
 *.pyc
 .project
 .cproject
-builtins
-/editor-script-lua-format
+/builtins
 /.vscode
+/.editor_settings
+.deps/**
