@@ -17,10 +17,18 @@
       type: number
   - name: randomseed
     type: function
-    desc: "Sets x as the \"seed\" for the pseudo-random generator: equal seeds produce equal sequences of numbers."
+    desc: "Sets x as the \"seed\" for the pseudo-random generator: equal seeds produce equal sequences of numbers. Accepts a number or a string (decimal representation of uint64) for full 64-bit precision."
     parameters:
     - name: x
-      type: number
+      type: number|string
+      desc: Seed value as number or string (e.g. \"18446744073709551615\" for full uint64 range).
+  - name: state
+    type: function
+    desc: "Returns the current internal state x as a string. Use this to save/restore state or pass to randomseed for full 64-bit precision (Lua double cannot represent all uint64 values)."
+    returns:
+    - name: state
+      type: string
+      desc: Current state as decimal string.
   - name: randomchoice
     type: function
     desc: Returns a random value from array t. If the array is empty an error is raised.

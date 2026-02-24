@@ -24,7 +24,13 @@ Or point to the ZIP file of a [specific release](https://github.com/indiesoftby/
 Sets `x` as the "seed" for the pseudo-random generator: equal seeds produce equal sequences of numbers.
 
 _PARAMETERS_
-* __x__ <kbd>number</kbd>.
+* __x__ <kbd>number</kbd> or <kbd>string</kbd> — Seed value. Use a string (e.g. `"18446744073709551615"`) for full 64-bit precision; Lua `number` cannot represent all uint64 values.
+
+### splitmix64.state()
+Returns the current internal state as a string. Use to save/restore state or pass to `randomseed` for full 64-bit precision.
+
+_RETURNS_
+* __state__ <kbd>string</kbd> — Current state as decimal string.
 
 ### splitmix64.random([m],[n])
 When called without arguments, returns a uniform pseudo-random real number in the range `[0,1)`. When called with an integer number `m`, `splitmix64.random` returns a uniform pseudo-random integer in the range `[1, m]`. When called with two integer numbers `m` and `n`, `splitmix64.random` returns a uniform pseudo-random integer in the range `[m, n]`.
@@ -94,6 +100,14 @@ print(splitmix64.toss())
 -- Roll 2d6
 local rolls, total = splitmix64.dice(2, splitmix64.D6)
 print(total, rolls[1], rolls[2])
+```
+
+### Save/Restore state
+
+```lua
+local state = splitmix64.state()
+-- ... use random ...
+splitmix64.randomseed(state)  -- restore exact state
 ```
 
 ### Advanced Usage

@@ -3,9 +3,11 @@
 #define MODULE_NAME "splitmix64"
 
 #include <dmsdk/sdk.h>
+#include <inttypes.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*  Written in 2015 by Sebastiano Vigna (vigna@acm.org)
 
@@ -73,9 +75,29 @@ static int Random(lua_State *L) {
 }
 
 static int RandomSeed(lua_State *L) {
-    double arg = (double)luaL_checknumber(L, 1);
-    x = (uint64_t)floor(arg);
+    int arg_type = lua_type(L, 1);
+    if (arg_type == LUA_TSTRING) {
+        const char *str = lua_tostring(L, 1);
+        char *end = NULL;
+        unsigned long long val = strtoull(str, &end, 10);
+        if (end == str || *end != '\0') {
+            return luaL_error(L, "invalid seed string: expected decimal number");
+        }
+        x = (uint64_t)val;
+    } else if (arg_type == LUA_TNUMBER) {
+        double arg = (double)luaL_checknumber(L, 1);
+        x = (uint64_t)floor(arg);
+    } else {
+        return luaL_argerror(L, 1, "expected number or string");
+    }
     return 0;
+}
+
+static int RandomState(lua_State *L) {
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%" PRIu64, x);
+    lua_pushstring(L, buf);
+    return 1;
 }
 
 enum DiceType {
@@ -175,6 +197,7 @@ static int Dice(lua_State *L) {
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] = {{"random", Random},
                                           {"randomseed", RandomSeed},
+                                          {"state", RandomState},
                                           {"randomchoice", RandomChoice},
                                           {"weightedchoice", WeightedChoice},
                                           {"toss", Toss},
