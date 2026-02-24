@@ -6,4 +6,4 @@ jobs:
   build:
     uses: defold/github-actions-common/.github/workflows/bob.yml@master
     with:
-      ignored_platforms: '[{"platform": "arm64-macos"}, {"platform": "x86_64-macos"}, {"platform": "arm64-ios"}]'
+      channel: stable
