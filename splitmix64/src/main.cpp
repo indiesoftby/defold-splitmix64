@@ -35,6 +35,10 @@ static uint64_t next() {
 
 #define MT64_MUL (1.0 / 9007199254740992.0)
 
+static double next_double(void) {
+    return (double)(next() >> 11) * MT64_MUL;
+}
+
 static uint64_t bounded_rand(uint64_t n) {
     uint64_t r = next();
     return r % n;
@@ -44,7 +48,7 @@ static int Random(lua_State *L) {
     lua_Integer low, up;
     switch (lua_gettop(L)) { /* check number of arguments */
     case 0: {                /* no arguments */
-        double r = (double)(next() >> 11) * MT64_MUL;
+        double r = next_double();
         lua_pushnumber(L, (lua_Number)r); /* Number between 0 and 1 */
         return 1;
     }
@@ -142,7 +146,7 @@ static int WeightedChoice(lua_State *L) {
     if (sum == 0) {
         return luaL_error(L, "all weights are zero");
     }
-    lua_Number rnd = (double)(next() >> 11) * MT64_MUL * sum;
+    lua_Number rnd = next_double() * sum;
     lua_pushnil(L);
     while (lua_next(L, 1) != 0) {
         lua_Number w = lua_tonumber(L, -1);
