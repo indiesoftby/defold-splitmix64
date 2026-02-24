@@ -1,6 +1,7 @@
 local TINT_GREEN = vmath.vector4(0.3, 0.9, 0.3, 1)
 local TINT_RED = vmath.vector4(0.9, 0.3, 0.3, 1)
 local EPSILON = 0.00001
+local html5 = sys.get_sys_info().system_name == "HTML5"
 
 function init(self)
     msg.post("@render:", "use_fixed_fit_projection", { near = -1, far = 1 })
@@ -14,6 +15,9 @@ local function equal_rng(actual, expected, label_url)
         label.set_text(label_url, tostring(actual) .. " ~= " .. tostring(expected))
         go.set(label_url, "color", TINT_RED)
     end
+    if not html5 then
+        assert(actual == expected, tostring(actual) .. " ~= " .. tostring(expected))
+    end
 end
 
 local function almost_equal_rng(actual, expected, label_url)
@@ -23,6 +27,9 @@ local function almost_equal_rng(actual, expected, label_url)
     else
         label.set_text(label_url, tostring(actual) .. " ~= " .. tostring(expected))
         go.set(label_url, "color", TINT_RED)
+    end
+    if not html5 then
+        assert(math.abs(actual - expected) < EPSILON, tostring(actual) .. " ~= " .. tostring(expected))
     end
 end
 

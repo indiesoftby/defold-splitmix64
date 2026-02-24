@@ -21,3 +21,48 @@
     parameters:
     - name: x
       type: number
+  - name: toss
+    type: function
+    desc: Toss a coin. Returns 0 or 1.
+    returns:
+    - name: value
+      type: number
+      desc: Returns 0 or 1.
+  - name: dice
+    type: function
+    desc: Roll one or more dice of the given type. Returns a table of individual rolls and the total sum.
+    parameters:
+    - name: roll
+      type: number
+      desc: Number of dice to roll (must be > 0).
+    - name: type
+      type: number
+      desc: Dice type (splitmix64.D4, splitmix64.D6, splitmix64.D8, splitmix64.D10, splitmix64.D12, splitmix64.D20, or splitmix64.D100).
+    returns:
+    - name: rolls
+      type: table
+      desc: Table of individual roll results.
+    - name: total
+      type: number
+      desc: Sum of all rolls.
+  - name: D4
+    type: number
+    desc: Dice type constant for 4-sided die.
+  - name: D6
+    type: number
+    desc: Dice type constant for 6-sided die.
+  - name: D8
+    type: number
+    desc: Dice type constant for 8-sided die.
+  - name: D10
+    type: number
+    desc: Dice type constant for 10-sided die (0-9).
+  - name: D12
+    type: number
+    desc: Dice type constant for 12-sided die.
+  - name: D20
+    type: number
+    desc: Dice type constant for 20-sided die.
+  - name: D100
+    type: number
+    desc: Dice type constant for percentile die (0, 10, 20, ..., 90).

@@ -33,6 +33,11 @@ static uint64_t next() {
 
 #define MT64_MUL (1.0 / 9007199254740992.0)
 
+static uint64_t bounded_rand(uint64_t n) {
+    uint64_t r = next();
+    return r % n;
+}
+
 static int Random(lua_State *L) {
     lua_Integer low, up;
     switch (lua_gettop(L)) { /* check number of arguments */
@@ -61,7 +66,8 @@ static int Random(lua_State *L) {
 #else
     luaL_argcheck(L, low >= 0 || up <= INT_MAX + low, 1, "interval too large");
 #endif
-    uint64_t i = next() % ((uint64_t)abs(up - low) + 1);
+    uint64_t n = (uint64_t)abs(up - low) + 1;
+    uint64_t i = bounded_rand(n);
     lua_pushinteger(L, (lua_Integer)i + low);
     return 1;
 }
@@ -72,9 +78,59 @@ static int RandomSeed(lua_State *L) {
     return 0;
 }
 
+enum DiceType {
+    D4 = 4,
+    D6 = 6,
+    D8 = 8,
+    D10 = 10,
+    D12 = 12,
+    D20 = 20,
+    D100 = 100
+};
+
+static int Toss(lua_State *L) {
+    uint64_t r = bounded_rand(2);
+    lua_pushinteger(L, (lua_Integer)r);
+    return 1;
+}
+
+static int Dice(lua_State *L) {
+    lua_Integer roll_count = luaL_checkinteger(L, 1);
+    if (roll_count <= 0) {
+        return luaL_error(L, "roll must be bigger than 0");
+    }
+    lua_Integer type_val = luaL_checkinteger(L, 2);
+    int type = (int)type_val;
+
+    lua_createtable(L, (int)roll_count, (int)roll_count);
+    int table_idx = lua_gettop(L);
+    lua_Integer total = 0;
+
+    for (lua_Integer i = 0; i < roll_count; ++i) {
+        lua_Integer num;
+        if (type == D100) {
+            num = (lua_Integer)bounded_rand(10) * 10;
+        } else if (type == D10) {
+            num = (lua_Integer)bounded_rand(10);
+        } else if (type == D4 || type == D6 || type == D8 || type == D12 || type == D20) {
+            num = (lua_Integer)bounded_rand((uint64_t)type) + 1;
+        } else {
+            return luaL_error(L, "invalid dice type: %d (use D4, D6, D8, D10, D12, D20, D100)", type);
+        }
+        total += num;
+        lua_pushinteger(L, num);
+        lua_rawseti(L, table_idx, (int)(i + 1));
+    }
+
+    lua_pushinteger(L, total);
+    return 2;
+}
+
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] = {{"random", Random},
                                           {"randomseed", RandomSeed},
+                                          {"toss", Toss},
+                                          {"dice", Dice},
                                           /* Sentinel: */
                                           {NULL, NULL}};
 
@@ -83,6 +139,18 @@ static void LuaInit(lua_State *L) {
 
     // Register lua names
     luaL_register(L, MODULE_NAME, Module_methods);
+
+#define SETCONSTANT(name) \
+    lua_pushinteger(L, (lua_Integer)name); \
+    lua_setfield(L, -2, #name);
+    SETCONSTANT(D4);
+    SETCONSTANT(D6);
+    SETCONSTANT(D8);
+    SETCONSTANT(D10);
+    SETCONSTANT(D12);
+    SETCONSTANT(D20);
+    SETCONSTANT(D100);
+#undef SETCONSTANT
 
     lua_pop(L, 1);
     assert(top == lua_gettop(L));
