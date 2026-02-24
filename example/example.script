@@ -1,10 +1,27 @@
 local TINT_GREEN = vmath.vector4(0.3, 0.9, 0.3, 1)
 local TINT_RED = vmath.vector4(0.9, 0.3, 0.3, 1)
 local EPSILON = 0.00001
-local html5 = sys.get_sys_info().system_name == "HTML5"
 
 function init(self)
     msg.post("@render:", "use_fixed_fit_projection", { near = -1, far = 1 })
+
+    splitmix64.randomseed(123456)
+    local saved_state = splitmix64.state()
+
+    local rng = splitmix64.new_instance(42)
+    assert(math.abs(rng.random() - 0.74156487877182) < EPSILON, "rng.random() mismatch")
+    assert(rng.random(1, 100) == 92, "rng.random(1, 100) mismatch")
+    rng.randomseed(999)
+    assert(rng.state() == "999", "rng.state() mismatch")
+    assert(rng.randomchoice({"a", "b", "c"}) == "b", "rng.randomchoice mismatch")
+    assert(rng.weightedchoice({red = 1, blue = 2, green = 3}) == "red", "rng.weightedchoice mismatch")
+    assert(rng.toss() == 0, "rng.toss() mismatch")
+    local rolls, total = rng.dice(2, splitmix64.D6)
+    assert(rolls[1] == 4 and rolls[2] == 3, "rng.dice rolls mismatch")
+    assert(total == 7, "rng.dice total mismatch")
+
+    assert(saved_state == splitmix64.state(), "module state changed by new_instance calls")
+    print("new_instance test passed: module state unchanged")
 end
 
 local function equal_rng(actual, expected, label_url)

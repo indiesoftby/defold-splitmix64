@@ -24,10 +24,12 @@ http://docs.oracle.com/javase/8/docs/api/java/util/SplittableRandom.html
 It is a very fast generator passing BigCrush, and it can be useful if
 for some reason you absolutely want 64 bits of state. */
 
-static uint64_t x; /* The state can be seeded with any value. */
+typedef struct {
+    uint64_t x;
+} Splitmix64State;
 
-static uint64_t next() {
-    uint64_t z = (x += 0x9e3779b97f4a7c15);
+static uint64_t next(Splitmix64State *s) {
+    uint64_t z = (s->x += 0x9e3779b97f4a7c15);
     z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9;
     z = (z ^ (z >> 27)) * 0x94d049bb133111eb;
     return z ^ (z >> 31);
@@ -35,71 +37,86 @@ static uint64_t next() {
 
 #define MT64_MUL (1.0 / 9007199254740992.0)
 
-static double next_double(void) {
-    return (double)(next() >> 11) * MT64_MUL;
+static double next_double(Splitmix64State *s) {
+    return (double)(next(s) >> 11) * MT64_MUL;
 }
 
-static uint64_t bounded_rand(uint64_t n) {
-    uint64_t r = next();
+static uint64_t bounded_rand(Splitmix64State *s, uint64_t n) {
+    uint64_t r = next(s);
     return r % n;
 }
 
+static Splitmix64State g_state;
+
+static Splitmix64State *get_state(lua_State *L, int *arg_offset) {
+    if (lua_type(L, lua_upvalueindex(1)) == LUA_TUSERDATA) {
+        *arg_offset = 0;
+        return (Splitmix64State *)lua_touserdata(L, lua_upvalueindex(1));
+    }
+    *arg_offset = 0;
+    return &g_state;
+}
+
 static int Random(lua_State *L) {
+    int off;
+    Splitmix64State *s = get_state(L, &off);
     lua_Integer low, up;
-    switch (lua_gettop(L)) { /* check number of arguments */
-    case 0: {                /* no arguments */
-        double r = next_double();
-        lua_pushnumber(L, (lua_Number)r); /* Number between 0 and 1 */
+    switch (lua_gettop(L) - off) {
+    case 0: {
+        double r = next_double(s);
+        lua_pushnumber(L, (lua_Number)r);
         return 1;
     }
-    case 1: { /* only upper limit */
+    case 1:
         low = 1;
-        up = luaL_checkinteger(L, 1);
+        up = luaL_checkinteger(L, 1 + off);
         break;
-    }
-    case 2: { /* lower and upper limits */
-        low = luaL_checkinteger(L, 1);
-        up = luaL_checkinteger(L, 2);
+    case 2:
+        low = luaL_checkinteger(L, 1 + off);
+        up = luaL_checkinteger(L, 2 + off);
         break;
-    }
     default:
         return luaL_error(L, "wrong number of arguments");
     }
-    /* random integer in the interval [low, up] */
-    luaL_argcheck(L, low <= up, 1, "interval is empty");
+    luaL_argcheck(L, low <= up, 1 + off, "interval is empty");
 #ifdef LUA_MAXINTEGER
-    luaL_argcheck(L, low >= 0 || up <= LUA_MAXINTEGER + low, 1, "interval too large");
+    luaL_argcheck(L, low >= 0 || up <= LUA_MAXINTEGER + low, 1 + off, "interval too large");
 #else
-    luaL_argcheck(L, low >= 0 || up <= INT_MAX + low, 1, "interval too large");
+    luaL_argcheck(L, low >= 0 || up <= INT_MAX + low, 1 + off, "interval too large");
 #endif
     uint64_t n = (uint64_t)abs(up - low) + 1;
-    uint64_t i = bounded_rand(n);
+    uint64_t i = bounded_rand(s, n);
     lua_pushinteger(L, (lua_Integer)i + low);
     return 1;
 }
 
 static int RandomSeed(lua_State *L) {
-    int arg_type = lua_type(L, 1);
+    int off;
+    Splitmix64State *s = get_state(L, &off);
+    int arg_idx = 1 + off;
+    int arg_type = lua_type(L, arg_idx);
     if (arg_type == LUA_TSTRING) {
-        const char *str = lua_tostring(L, 1);
+        const char *str = lua_tostring(L, arg_idx);
         char *end = NULL;
         unsigned long long val = strtoull(str, &end, 10);
         if (end == str || *end != '\0') {
             return luaL_error(L, "invalid seed string: expected decimal number");
         }
-        x = (uint64_t)val;
+        s->x = (uint64_t)val;
     } else if (arg_type == LUA_TNUMBER) {
-        double arg = (double)luaL_checknumber(L, 1);
-        x = (uint64_t)floor(arg);
+        double arg = (double)luaL_checknumber(L, arg_idx);
+        s->x = (uint64_t)floor(arg);
     } else {
-        return luaL_argerror(L, 1, "expected number or string");
+        return luaL_argerror(L, arg_idx, "expected number or string");
     }
     return 0;
 }
 
 static int RandomState(lua_State *L) {
+    int off;
+    Splitmix64State *s = get_state(L, &off);
     char buf[32];
-    snprintf(buf, sizeof(buf), "%" PRIu64, x);
+    snprintf(buf, sizeof(buf), "%" PRIu64, s->x);
     lua_pushstring(L, buf);
     return 1;
 }
@@ -115,63 +132,130 @@ enum DiceType {
 };
 
 static int Toss(lua_State *L) {
-    uint64_t r = bounded_rand(2);
+    int off;
+    Splitmix64State *s = get_state(L, &off);
+    uint64_t r = bounded_rand(s, 2);
     lua_pushinteger(L, (lua_Integer)r);
     return 1;
 }
 
 static int RandomChoice(lua_State *L) {
-    luaL_checktype(L, 1, LUA_TTABLE);
-    lua_Integer len = lua_objlen(L, 1);
+    int off;
+    Splitmix64State *s = get_state(L, &off);
+    int tidx = 1 + off;
+    luaL_checktype(L, tidx, LUA_TTABLE);
+    lua_Integer len = lua_objlen(L, tidx);
     if (len == 0) {
         return luaL_error(L, "table is empty");
     }
-    lua_Integer idx = (lua_Integer)bounded_rand((uint64_t)len) + 1;
-    lua_rawgeti(L, 1, (int)idx);
+    lua_Integer idx = (lua_Integer)bounded_rand(s, (uint64_t)len) + 1;
+    lua_rawgeti(L, tidx, (int)idx);
     return 1;
 }
 
+static int compare_keys(lua_State *L, int a, int b) {
+    int ta = lua_type(L, a);
+    int tb = lua_type(L, b);
+    if (ta != tb) return ta - tb;
+    switch (ta) {
+    case LUA_TNUMBER: {
+        lua_Number na = lua_tonumber(L, a);
+        lua_Number nb = lua_tonumber(L, b);
+        return (na < nb) ? -1 : (na > nb) ? 1 : 0;
+    }
+    case LUA_TSTRING: {
+        size_t la, lb;
+        const char *sa = lua_tolstring(L, a, &la);
+        const char *sb = lua_tolstring(L, b, &lb);
+        size_t min_len = (la < lb) ? la : lb;
+        int cmp = memcmp(sa, sb, min_len);
+        if (cmp != 0) return cmp;
+        return (la < lb) ? -1 : (la > lb) ? 1 : 0;
+    }
+    case LUA_TBOOLEAN:
+        return lua_toboolean(L, a) - lua_toboolean(L, b);
+    default: {
+        const void *pa = lua_topointer(L, a);
+        const void *pb = lua_topointer(L, b);
+        return (pa < pb) ? -1 : (pa > pb) ? 1 : 0;
+    }
+    }
+}
+
 static int WeightedChoice(lua_State *L) {
-    luaL_checktype(L, 1, LUA_TTABLE);
+    int off;
+    Splitmix64State *s = get_state(L, &off);
+    int tidx = 1 + off;
+    luaL_checktype(L, tidx, LUA_TTABLE);
+
     lua_Number sum = 0;
+    int count = 0;
     lua_pushnil(L);
-    while (lua_next(L, 1) != 0) {
+    while (lua_next(L, tidx) != 0) {
         lua_Number w = luaL_checknumber(L, -1);
         if (w < 0) {
             return luaL_error(L, "weight value less than zero");
         }
         sum += w;
+        count++;
         lua_pop(L, 1);
+    }
+    if (count == 0) {
+        return luaL_error(L, "table is empty");
     }
     if (sum == 0) {
         return luaL_error(L, "all weights are zero");
     }
-    lua_Number rnd = next_double() * sum;
+
+    luaL_checkstack(L, count + 4, "too many weight entries");
+
+    int base = lua_gettop(L) + 1;
     lua_pushnil(L);
-    while (lua_next(L, 1) != 0) {
+    while (lua_next(L, tidx) != 0) {
+        lua_pop(L, 1);
+        lua_pushvalue(L, -1);
+        lua_insert(L, -2);
+    }
+
+    for (int j = 1; j < count; j++) {
+        lua_pushvalue(L, base + j);
+        int tmp_idx = lua_gettop(L);
+        int k = j - 1;
+        while (k >= 0) {
+            int cmp = compare_keys(L, base + k, tmp_idx);
+            if (cmp <= 0) break;
+            lua_pushvalue(L, base + k);
+            lua_replace(L, base + k + 1);
+            k--;
+        }
+        lua_replace(L, base + k + 1);
+    }
+
+    lua_Number rnd = next_double(s) * sum;
+    for (int j = 0; j < count; j++) {
+        lua_pushvalue(L, base + j);
+        lua_gettable(L, tidx);
         lua_Number w = lua_tonumber(L, -1);
-        lua_pushvalue(L, -2);
-        lua_replace(L, 2);
+        lua_pop(L, 1);
         if (rnd < w) {
-            lua_pop(L, 1);
-            lua_pushvalue(L, 2);
-            lua_remove(L, 2);
+            lua_pushvalue(L, base + j);
             return 1;
         }
         rnd -= w;
-        lua_pop(L, 1);
     }
-    lua_pushvalue(L, 2);
-    lua_remove(L, 2);
+
+    lua_pushvalue(L, base + count - 1);
     return 1;
 }
 
 static int Dice(lua_State *L) {
-    lua_Integer roll_count = luaL_checkinteger(L, 1);
+    int off;
+    Splitmix64State *s = get_state(L, &off);
+    lua_Integer roll_count = luaL_checkinteger(L, 1 + off);
     if (roll_count <= 0) {
         return luaL_error(L, "roll must be bigger than 0");
     }
-    lua_Integer type_val = luaL_checkinteger(L, 2);
+    lua_Integer type_val = luaL_checkinteger(L, 2 + off);
     int type = (int)type_val;
 
     lua_createtable(L, (int)roll_count, (int)roll_count);
@@ -181,11 +265,11 @@ static int Dice(lua_State *L) {
     for (lua_Integer i = 0; i < roll_count; ++i) {
         lua_Integer num;
         if (type == D100) {
-            num = (lua_Integer)bounded_rand(10) * 10;
+            num = (lua_Integer)bounded_rand(s, 10) * 10;
         } else if (type == D10) {
-            num = (lua_Integer)bounded_rand(10);
+            num = (lua_Integer)bounded_rand(s, 10);
         } else if (type == D4 || type == D6 || type == D8 || type == D12 || type == D20) {
-            num = (lua_Integer)bounded_rand((uint64_t)type) + 1;
+            num = (lua_Integer)bounded_rand(s, (uint64_t)type) + 1;
         } else {
             return luaL_error(L, "invalid dice type: %d (use D4, D6, D8, D10, D12, D20, D100)", type);
         }
@@ -198,6 +282,49 @@ static int Dice(lua_State *L) {
     return 2;
 }
 
+static int NewInstance(lua_State *L) {
+    int nargs = lua_gettop(L);
+    uint64_t seed = 0;
+    if (nargs >= 1) {
+        int arg_type = lua_type(L, 1);
+        if (arg_type == LUA_TSTRING) {
+            const char *str = lua_tostring(L, 1);
+            char *end = NULL;
+            unsigned long long val = strtoull(str, &end, 10);
+            if (end == str || *end != '\0') {
+                return luaL_error(L, "invalid seed string: expected decimal number");
+            }
+            seed = (uint64_t)val;
+        } else if (arg_type == LUA_TNUMBER) {
+            double arg = (double)luaL_checknumber(L, 1);
+            seed = (uint64_t)floor(arg);
+        } else {
+            return luaL_argerror(L, 1, "expected number or string");
+        }
+    }
+    Splitmix64State *s = (Splitmix64State *)lua_newuserdata(L, sizeof(Splitmix64State));
+    s->x = seed;
+    int ud_idx = lua_gettop(L);
+
+    lua_createtable(L, 0, 14);
+    int tbl_idx = lua_gettop(L);
+
+#define PUSH_METHOD(name, func) \
+    lua_pushvalue(L, ud_idx); \
+    lua_pushcclosure(L, func, 1); \
+    lua_setfield(L, tbl_idx, name);
+    PUSH_METHOD("random", Random)
+    PUSH_METHOD("randomseed", RandomSeed)
+    PUSH_METHOD("state", RandomState)
+    PUSH_METHOD("randomchoice", RandomChoice)
+    PUSH_METHOD("weightedchoice", WeightedChoice)
+    PUSH_METHOD("toss", Toss)
+    PUSH_METHOD("dice", Dice)
+#undef PUSH_METHOD
+
+    return 1;
+}
+
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] = {{"random", Random},
                                           {"randomseed", RandomSeed},
@@ -206,13 +333,13 @@ static const luaL_reg Module_methods[] = {{"random", Random},
                                           {"weightedchoice", WeightedChoice},
                                           {"toss", Toss},
                                           {"dice", Dice},
+                                          {"new_instance", NewInstance},
                                           /* Sentinel: */
                                           {NULL, NULL}};
 
 static void LuaInit(lua_State *L) {
     int top = lua_gettop(L);
 
-    // Register lua names
     luaL_register(L, MODULE_NAME, Module_methods);
 
 #define SETCONSTANT(name) \
@@ -228,6 +355,7 @@ static void LuaInit(lua_State *L) {
 #undef SETCONSTANT
 
     lua_pop(L, 1);
+
     assert(top == lua_gettop(L));
 }
 

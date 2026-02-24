@@ -42,7 +42,7 @@
       desc: Random element from the array.
   - name: weightedchoice
     type: function
-    desc: Takes table t where keys are choices and values are weights. Returns a random key. Weights must be >= 0. If all weights are 0 or a weight is negative, an error is raised.
+    desc: Takes table t where keys are choices and values are weights. Returns a random key. Keys are sorted deterministically (numbers first, then strings lexicographically) before selection, so the result is reproducible for the same seed. Weights must be >= 0. If all weights are 0 or a weight is negative, an error is raised.
     parameters:
     - name: t
       type: table
@@ -58,6 +58,18 @@
     - name: value
       type: number
       desc: Returns 0 or 1.
+  - name: new_instance
+    type: function
+    desc: Creates a new RNG instance with independent state. Optional seed (number or string) for reproducibility.
+    parameters:
+    - name: seed
+      optional: true
+      type: number|string
+      desc: Optional seed for the new instance.
+    returns:
+    - name: rng
+      type: userdata
+      desc: RNG instance with methods random, randomseed, state, randomchoice, weightedchoice, toss, dice. Same API as the module but with isolated state.
   - name: dice
     type: function
     desc: Roll one or more dice of the given type. Returns a table of individual rolls and the total sum.

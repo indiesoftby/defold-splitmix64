@@ -52,7 +52,7 @@ _RETURNS_
 * __value__ - Random element from the array.
 
 ### splitmix64.weightedchoice(t)
-Takes table `t` where keys are choices and values are weights. Returns a random key. Weights must be ≥ 0. If all weights are 0 or a weight is negative, an error is raised.
+Takes table `t` where keys are choices and values are weights. Returns a random key. Keys are sorted deterministically (numbers first, then strings lexicographically) before selection, so the result is reproducible for the same seed across all platforms. Weights must be ≥ 0. If all weights are 0 or a weight is negative, an error is raised.
 
 _PARAMETERS_
 * __t__ <kbd>table</kbd> - Table of key-weight pairs.
@@ -108,6 +108,34 @@ print(total, rolls[1], rolls[2])
 local state = splitmix64.state()
 -- ... use random ...
 splitmix64.randomseed(state)  -- restore exact state
+```
+
+### splitmix64.new_instance([seed])
+Creates a new independent RNG instance. Each instance has its own internal state, completely isolated from the global module state and from other instances. This allows running multiple RNG streams in parallel without interference.
+
+_PARAMETERS_
+* __seed__ <kbd>number</kbd> or <kbd>string</kbd> _(optional)_ — Initial seed for the instance. Defaults to 0.
+
+_RETURNS_
+* __rng__ <kbd>table</kbd> — A table with the same set of functions as the module: `random`, `randomseed`, `state`, `randomchoice`, `weightedchoice`, `toss`, `dice`.
+
+#### Example
+
+```lua
+-- Create two independent generators
+local rng_enemies = splitmix64.new_instance(42)
+local rng_loot = splitmix64.new_instance(999)
+
+-- Each has its own state — they don't affect each other or the global module
+print(rng_enemies.random(1, 100))
+print(rng_loot.random(1, 100))
+
+-- The global state is unchanged
+print(splitmix64.random())
+
+-- Save/restore instance state
+local saved = rng_enemies.state()
+rng_enemies.randomseed(saved)
 ```
 
 ### Advanced Usage
