@@ -36,6 +36,44 @@ _PARAMETERS_
 _RETURNS_
 * __value__ <kbd>number</kbd> - A pseudo-random number.
 
+### splitmix64.randomchoice(t)
+Returns a random value from array `t`. If the array is empty an error is raised.
+
+_PARAMETERS_
+* __t__ <kbd>table</kbd> - Array of values to choose from.
+
+_RETURNS_
+* __value__ - Random element from the array.
+
+### splitmix64.weightedchoice(t)
+Takes table `t` where keys are choices and values are weights. Returns a random key. Weights must be ≥ 0. If all weights are 0 or a weight is negative, an error is raised.
+
+_PARAMETERS_
+* __t__ <kbd>table</kbd> - Table of key-weight pairs.
+
+_RETURNS_
+* __key__ - Random key chosen by weight.
+
+### splitmix64.toss()
+Toss a coin. Returns 0 or 1.
+
+_RETURNS_
+* __value__ <kbd>number</kbd> - 0 or 1.
+
+### splitmix64.dice(roll, type)
+Roll one or more dice of the given type. Returns a table of individual rolls and the total sum.
+
+_PARAMETERS_
+* __roll__ <kbd>number</kbd> - Number of dice to roll (must be > 0).
+* __type__ <kbd>number</kbd> - Dice type: `splitmix64.D4`, `splitmix64.D6`, `splitmix64.D8`, `splitmix64.D10`, `splitmix64.D12`, `splitmix64.D20`, or `splitmix64.D100`.
+
+_RETURNS_
+* __rolls__ <kbd>table</kbd> - Table of individual roll results.
+* __total__ <kbd>number</kbd> - Sum of all rolls.
+
+### Dice type constants
+* `splitmix64.D4`, `splitmix64.D6`, `splitmix64.D8`, `splitmix64.D10`, `splitmix64.D12`, `splitmix64.D20`, `splitmix64.D100`
+
 ### Example
 
 ```lua
@@ -43,6 +81,19 @@ splitmix64.randomseed(1)
 
 print(splitmix64.random())
 print(splitmix64.random(1, 10000))
+
+-- Random choice from array
+print(splitmix64.randomchoice({true, false}))
+
+-- Weighted choice (cat twice as likely as dog)
+print(splitmix64.weightedchoice({ ["cat"] = 10, ["dog"] = 5, ["frog"] = 0 }))
+
+-- Coin toss
+print(splitmix64.toss())
+
+-- Roll 2d6
+local rolls, total = splitmix64.dice(2, splitmix64.D6)
+print(total, rolls[1], rolls[2])
 ```
 
 ### Advanced Usage
