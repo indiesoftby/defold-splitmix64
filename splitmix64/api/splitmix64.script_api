@@ -21,6 +21,28 @@
     parameters:
     - name: x
       type: number
+  - name: randomchoice
+    type: function
+    desc: Returns a random value from array t. If the array is empty an error is raised.
+    parameters:
+    - name: t
+      type: table
+      desc: Array of values to choose from.
+    returns:
+    - name: value
+      type: any
+      desc: Random element from the array.
+  - name: weightedchoice
+    type: function
+    desc: Takes table t where keys are choices and values are weights. Returns a random key. Weights must be >= 0. If all weights are 0 or a weight is negative, an error is raised.
+    parameters:
+    - name: t
+      type: table
+      desc: Table of key-weight pairs.
+    returns:
+    - name: key
+      type: any
+      desc: Random key chosen by weight.
   - name: toss
     type: function
     desc: Toss a coin. Returns 0 or 1.

@@ -94,6 +94,52 @@ static int Toss(lua_State *L) {
     return 1;
 }
 
+static int RandomChoice(lua_State *L) {
+    luaL_checktype(L, 1, LUA_TTABLE);
+    lua_Integer len = lua_objlen(L, 1);
+    if (len == 0) {
+        return luaL_error(L, "table is empty");
+    }
+    lua_Integer idx = (lua_Integer)bounded_rand((uint64_t)len) + 1;
+    lua_rawgeti(L, 1, (int)idx);
+    return 1;
+}
+
+static int WeightedChoice(lua_State *L) {
+    luaL_checktype(L, 1, LUA_TTABLE);
+    lua_Number sum = 0;
+    lua_pushnil(L);
+    while (lua_next(L, 1) != 0) {
+        lua_Number w = luaL_checknumber(L, -1);
+        if (w < 0) {
+            return luaL_error(L, "weight value less than zero");
+        }
+        sum += w;
+        lua_pop(L, 1);
+    }
+    if (sum == 0) {
+        return luaL_error(L, "all weights are zero");
+    }
+    lua_Number rnd = (double)(next() >> 11) * MT64_MUL * sum;
+    lua_pushnil(L);
+    while (lua_next(L, 1) != 0) {
+        lua_Number w = lua_tonumber(L, -1);
+        lua_pushvalue(L, -2);
+        lua_replace(L, 2);
+        if (rnd < w) {
+            lua_pop(L, 1);
+            lua_pushvalue(L, 2);
+            lua_remove(L, 2);
+            return 1;
+        }
+        rnd -= w;
+        lua_pop(L, 1);
+    }
+    lua_pushvalue(L, 2);
+    lua_remove(L, 2);
+    return 1;
+}
+
 static int Dice(lua_State *L) {
     lua_Integer roll_count = luaL_checkinteger(L, 1);
     if (roll_count <= 0) {
@@ -129,6 +175,8 @@ static int Dice(lua_State *L) {
 // Functions exposed to Lua
 static const luaL_reg Module_methods[] = {{"random", Random},
                                           {"randomseed", RandomSeed},
+                                          {"randomchoice", RandomChoice},
+                                          {"weightedchoice", WeightedChoice},
                                           {"toss", Toss},
                                           {"dice", Dice},
                                           /* Sentinel: */
