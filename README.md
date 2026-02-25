@@ -77,6 +77,16 @@ _RETURNS_
 * __rolls__ <kbd>table</kbd> - Table of individual roll results.
 * __total__ <kbd>number</kbd> - Sum of all rolls.
 
+### splitmix64.shuffle(t, [inplace])
+Shuffles an array using the Fisher-Yates algorithm. Returns a shuffled copy of the array, or if `inplace` is `true`, shuffles the original array in-place and returns it.
+
+_PARAMETERS_
+* __t__ <kbd>table</kbd> - Array to shuffle.
+* __inplace__ <kbd>boolean</kbd> _(optional)_ - If `true`, shuffle the array in-place instead of creating a copy. Defaults to `false`.
+
+_RETURNS_
+* __result__ <kbd>table</kbd> - The shuffled array (a new table, or the same table if `inplace` is `true`).
+
 ### Dice type constants
 * `splitmix64.D4`, `splitmix64.D6`, `splitmix64.D8`, `splitmix64.D10`, `splitmix64.D12`, `splitmix64.D20`, `splitmix64.D100`
 
@@ -96,6 +106,13 @@ print(splitmix64.weightedchoice({ ["cat"] = 10, ["dog"] = 5, ["frog"] = 0 }))
 
 -- Coin toss
 print(splitmix64.toss())
+
+-- Shuffle an array (returns a new table)
+local shuffled = splitmix64.shuffle({1, 2, 3, 4, 5})
+
+-- Shuffle in-place
+local t = {1, 2, 3, 4, 5}
+splitmix64.shuffle(t, true)
 
 -- Roll 2d6
 local rolls, total = splitmix64.dice(2, splitmix64.D6)
@@ -117,7 +134,7 @@ _PARAMETERS_
 * __seed__ <kbd>number</kbd> or <kbd>string</kbd> _(optional)_ — Initial seed for the instance. Defaults to 0.
 
 _RETURNS_
-* __rng__ <kbd>table</kbd> — A table with the same set of functions as the module: `random`, `randomseed`, `state`, `randomchoice`, `weightedchoice`, `toss`, `dice`.
+* __rng__ <kbd>table</kbd> — A table with the same set of functions as the module: `random`, `randomseed`, `state`, `randomchoice`, `weightedchoice`, `toss`, `dice`, `shuffle`.
 
 #### Example
 

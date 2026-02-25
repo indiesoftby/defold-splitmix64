@@ -69,7 +69,7 @@
     returns:
     - name: rng
       type: userdata
-      desc: RNG instance with methods random, randomseed, state, randomchoice, weightedchoice, toss, dice. Same API as the module but with isolated state.
+      desc: RNG instance with methods random, randomseed, state, randomchoice, weightedchoice, toss, dice, shuffle. Same API as the module but with isolated state.
   - name: dice
     type: function
     desc: Roll one or more dice of the given type. Returns a table of individual rolls and the total sum.
@@ -87,6 +87,21 @@
     - name: total
       type: number
       desc: Sum of all rolls.
+  - name: shuffle
+    type: function
+    desc: Shuffles an array using the Fisher-Yates algorithm. Returns a shuffled copy of the array, or if inplace is true, shuffles the original array in-place and returns it.
+    parameters:
+    - name: t
+      type: table
+      desc: Array to shuffle.
+    - name: inplace
+      optional: true
+      type: boolean
+      desc: If true, shuffle the array in-place instead of creating a copy. Defaults to false.
+    returns:
+    - name: result
+      type: table
+      desc: The shuffled array (a new table, or the same table if inplace is true).
   - name: D4
     type: number
     desc: Dice type constant for 4-sided die.

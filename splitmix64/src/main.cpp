@@ -282,6 +282,42 @@ static int Dice(lua_State *L) {
     return 2;
 }
 
+static int Shuffle(lua_State *L) {
+    int off;
+    Splitmix64State *s = get_state(L, &off);
+    int tidx = 1 + off;
+    luaL_checktype(L, tidx, LUA_TTABLE);
+    int inplace = 0;
+    if (lua_gettop(L) >= 2 + off) {
+        inplace = lua_toboolean(L, 2 + off);
+    }
+
+    lua_Integer len = lua_objlen(L, tidx);
+
+    if (!inplace) {
+        lua_createtable(L, (int)len, 0);
+        int newtbl = lua_gettop(L);
+        for (lua_Integer i = 1; i <= len; i++) {
+            lua_rawgeti(L, tidx, (int)i);
+            lua_rawseti(L, newtbl, (int)i);
+        }
+        tidx = newtbl;
+    }
+
+    for (lua_Integer i = len; i >= 2; i--) {
+        lua_Integer j = (lua_Integer)bounded_rand(s, (uint64_t)i) + 1;
+        if (i != j) {
+            lua_rawgeti(L, tidx, (int)i);
+            lua_rawgeti(L, tidx, (int)j);
+            lua_rawseti(L, tidx, (int)i);
+            lua_rawseti(L, tidx, (int)j);
+        }
+    }
+
+    lua_pushvalue(L, tidx);
+    return 1;
+}
+
 static int NewInstance(lua_State *L) {
     int nargs = lua_gettop(L);
     uint64_t seed = 0;
@@ -320,6 +356,7 @@ static int NewInstance(lua_State *L) {
     PUSH_METHOD("weightedchoice", WeightedChoice)
     PUSH_METHOD("toss", Toss)
     PUSH_METHOD("dice", Dice)
+    PUSH_METHOD("shuffle", Shuffle)
 #undef PUSH_METHOD
 
     return 1;
@@ -333,6 +370,7 @@ static const luaL_reg Module_methods[] = {{"random", Random},
                                           {"weightedchoice", WeightedChoice},
                                           {"toss", Toss},
                                           {"dice", Dice},
+                                          {"shuffle", Shuffle},
                                           {"new_instance", NewInstance},
                                           /* Sentinel: */
                                           {NULL, NULL}};

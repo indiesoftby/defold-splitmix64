@@ -20,6 +20,27 @@ function init(self)
     assert(rolls[1] == 4 and rolls[2] == 3, "rng.dice rolls mismatch")
     assert(total == 7, "rng.dice total mismatch")
 
+    -- shuffle copy test
+    local orig = {10, 20, 30, 40, 50, 60}
+    local shuffled = rng.shuffle(orig)
+    assert(#shuffled == 6, "shuffle copy: wrong length")
+    assert(orig[1] == 10 and orig[2] == 20 and orig[3] == 30 and orig[4] == 40 and orig[5] == 50 and orig[6] == 60, "shuffle copy: original modified")
+    assert(shuffled ~= orig, "shuffle copy: returned same table")
+    assert(shuffled[1] == 30 and shuffled[2] == 10 and shuffled[3] == 40 and shuffled[4] == 50 and shuffled[5] == 20 and shuffled[6] == 60, "shuffle copy: values mismatch")
+
+    -- shuffle inplace test
+    local t = {1, 2, 3, 4, 5}
+    local ret = rng.shuffle(t, true)
+    assert(ret == t, "shuffle inplace: returned different table")
+    assert(#t == 5, "shuffle inplace: wrong length")
+    assert(t[1] == 4 and t[2] == 3 and t[3] == 5 and t[4] == 2 and t[5] == 1, "shuffle inplace: values mismatch")
+
+    -- shuffle empty array test
+    local empty = rng.shuffle({})
+    assert(#empty == 0, "shuffle empty: wrong length")
+
+    print("shuffle tests passed")
+
     assert(saved_state == splitmix64.state(), "module state changed by new_instance calls")
     print("new_instance test passed: module state unchanged")
 end
