@@ -5,6 +5,21 @@ local EPSILON = 0.00001
 function init(self)
     msg.post("@render:", "use_fixed_fit_projection", { near = -1, far = 1 })
 
+    -- Known values test (seed=0): must match the C99 reference implementation
+    local known_rng = splitmix64.new_instance(0)
+    local known_doubles = {
+        0.88331080821364260647,
+        0.43152799704850997031,
+        0.02643377159259774345,
+        0.97088197815382848432,
+        0.10634669156721243688,
+    }
+    for i, expected in ipairs(known_doubles) do
+        local actual = known_rng.random()
+        assert(math.abs(actual - expected) < EPSILON, "known double[" .. i .. "] mismatch: " .. actual .. " ~= " .. expected)
+    end
+    print("known values test passed")
+
     splitmix64.randomseed(123456)
     local saved_state = splitmix64.state()
 
