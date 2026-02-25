@@ -155,6 +155,16 @@ local saved = rng_enemies.state()
 rng_enemies.randomseed(saved)
 ```
 
+## Reference Implementations
+
+The [`implementations/`](implementations/) directory contains reference implementations of the SplitMix64 algorithm for other languages:
+
+- **C99** — [`implementations/c/`](implementations/c/)
+- **Python 3** — [`implementations/python/`](implementations/python/)
+- **TypeScript** — [`implementations/typescript/`](implementations/typescript/)
+
+These implementations produce identical random number sequences for the same seeds, which makes them suitable for **networked multiplayer games** that rely on deterministic PRNG state. By seeding all clients with the same value, you can guarantee consistent simulation results across platforms and languages!
+
 ### Advanced Usage
 
 You can also globally substitute the built-in `math.random` with `splitmix64`:
