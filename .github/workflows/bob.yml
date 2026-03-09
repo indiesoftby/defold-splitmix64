@@ -7,3 +7,4 @@ jobs:
     uses: defold/github-actions-common/.github/workflows/bob.yml@master
     with:
       channel: stable
+      build_server: https://build.defold.com
