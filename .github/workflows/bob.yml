@@ -88,7 +88,7 @@ jobs:
       - name: Resolve libraries
         run: java -jar bob.jar resolve
       - name: Build
-        run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} build --build-server=${{ inputs.build_server || 'https://build-stage.defold.com' }} ${{ inputs.additonal_build_options || '--archive' }}
+        run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} build --build-server=${{ inputs.build_server || 'https://build.defold.com' }} ${{ inputs.additonal_build_options || '--archive' }}
       - name: Bundle
         run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} bundle ${{ inputs.additonal_bundle_options }}
       - name: Print build log on failure
@@ -127,7 +127,7 @@ jobs:
       - name: Resolve libraries
         run: java -jar bob.jar resolve
       - name: Build
-        run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} build --build-server=${{ inputs.build_server || 'https://build-stage.defold.com' }} ${{ inputs.additonal_build_options || '--archive' }}
+        run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} build --build-server=${{ inputs.build_server || 'https://build.defold.com' }} ${{ inputs.additonal_build_options || '--archive' }}
       - name: Bundle
         run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} bundle ${{ inputs.additonal_bundle_options }}
       - name: Print build log on failure
@@ -166,7 +166,7 @@ jobs:
       - name: Resolve libraries
         run: java -jar bob.jar resolve
       - name: Build
-        run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} build --build-server=${{ inputs.build_server || 'https://build-stage.defold.com' }} ${{ inputs.additonal_build_options || '--archive' }}
+        run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} build --build-server=${{ inputs.build_server || 'https://build.defold.com' }} ${{ inputs.additonal_build_options || '--archive' }}
       - name: Bundle
         run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} bundle ${{ inputs.additonal_bundle_options }}
       - name: Print build log on failure
