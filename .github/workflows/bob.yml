@@ -93,7 +93,7 @@ jobs:
         run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} bundle ${{ inputs.additonal_bundle_options }}
       - name: Print build log on failure
         if: failure()
-        run: cat build/${{ matrix.platform }}/log.txt 2>/dev/null || echo "No log file found"
+        run: cat build/*/log.txt 2>/dev/null || echo "No log file found"
 
   build_with_bob_windows:
     strategy:
@@ -132,7 +132,7 @@ jobs:
         run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} bundle ${{ inputs.additonal_bundle_options }}
       - name: Print build log on failure
         if: failure()
-        run: cat build/${{ matrix.platform }}/log.txt 2>/dev/null || echo "No log file found"
+        run: cat build/*/log.txt 2>/dev/null || echo "No log file found"
         shell: bash
 
   build_with_bob_macos:
@@ -171,4 +171,4 @@ jobs:
         run: java -jar bob.jar --platform=${{ matrix.platform }} --architectures ${{ matrix.platform }} bundle ${{ inputs.additonal_bundle_options }}
       - name: Print build log on failure
         if: failure()
-        run: cat build/${{ matrix.platform }}/log.txt 2>/dev/null || echo "No log file found"
+        run: cat build/*/log.txt 2>/dev/null || echo "No log file found"
