@@ -24,7 +24,7 @@ on:
         required: false
         type: string
         description: 'Build server url'
-        default: 'https://build-stage.defold.com'
+        default: 'https://build.defold.com'
       channel:
         required: false
         type: string
