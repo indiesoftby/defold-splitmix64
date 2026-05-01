@@ -18,6 +18,10 @@ https://github.com/indiesoftby/defold-splitmix64/archive/main.zip
 
 Or point to the ZIP file of a [specific release](https://github.com/indiesoftby/defold-splitmix64/releases).
 
+## LuaJIT (standalone)
+
+The same Lua API is compiled as a native module for LuaJIT (for tests, servers, or tooling). Build instructions: `luajit/README.md`.
+
 ## Usage
 
 ### splitmix64.randomseed(x)

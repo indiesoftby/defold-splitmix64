@@ -11,3 +11,5 @@ Thumbs.db
 /.vscode
 /.editor_settings
 .deps/**
+*.lib
+*.exp

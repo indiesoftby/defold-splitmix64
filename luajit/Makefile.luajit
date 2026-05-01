@@ -1,0 +1,45 @@
+# Makefile for building splitmix64 as a LuaJIT C module
+# Usage: make -f Makefile.luajit
+# Output: ../splitmix64/bin/<platform>/splitmix64.so | .dll
+
+CXX ?= g++
+CXXFLAGS := -std=c++14 -O2 -fPIC -shared -DSPLITMIX64_EXT_LUAJIT
+WARNINGS := -Wall -Wno-unused-function
+
+ifeq ($(OS),Windows_NT)
+    EXT := .dll
+    PLATFORM := x86_64-win32
+    LUAJIT_INC ?= /mingw64/include/luajit-2.1
+    LUAJIT_LIB := -lluajit-5.1
+    RM := del /q
+    MKDIR_P := mkdir
+else
+    EXT := .so
+    PLATFORM := x86_64-linux
+    LUAJIT_INC ?= /usr/include/luajit-2.1
+    LUAJIT_LIB := -lluajit-5.1
+    RM := rm -f
+    MKDIR_P := mkdir -p
+endif
+
+SHIM_DIR := .
+EXT_API := ../splitmix64/src/ext_lua_api.cpp
+LUAJIT_MAIN := ext_luajit.cpp
+
+INCLUDES := -I$(SHIM_DIR) -I$(LUAJIT_INC) -I../splitmix64/src
+
+TARGET := ../splitmix64/bin/$(PLATFORM)/splitmix64$(EXT)
+
+all: $(TARGET)
+
+$(TARGET): $(LUAJIT_MAIN) $(EXT_API)
+	@$(MKDIR_P) $(dir $(TARGET))
+	$(CXX) $(CXXFLAGS) $(WARNINGS) $(INCLUDES) -o $@ $(LUAJIT_MAIN) $(EXT_API) $(LUAJIT_LIB)
+
+test: $(TARGET)
+	luajit test_splitmix64.lua
+
+clean:
+	$(RM) $(TARGET)
+
+.PHONY: all test clean

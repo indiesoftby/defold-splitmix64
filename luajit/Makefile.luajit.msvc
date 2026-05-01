@@ -1,0 +1,31 @@
+# Makefile for building splitmix64.dll with MSVC 2019 + nmake
+#
+# Usage (from VS 2019 Developer Command Prompt):
+#   nmake -f Makefile.luajit.msvc
+#
+# Output: ..\splitmix64\bin\x86_64-win32\splitmix64.dll
+
+LUAJIT_ROOT = $(LOCALAPPDATA)\Programs\LuaJIT
+LUAJIT_INC  = $(LUAJIT_ROOT)\include
+LUAJIT_LIB  = $(LUAJIT_ROOT)\lib\lua51.lib
+
+SHIM_DIR    = .
+LUAJIT_MAIN = ext_luajit.cpp
+EXT_API     = ..\splitmix64\src\ext_lua_api.cpp
+INCLUDES    = /I$(SHIM_DIR) /I$(LUAJIT_INC) /I..\splitmix64\src
+TARGET      = ..\splitmix64\bin\x86_64-win32\splitmix64.dll
+OUTDIR      = ..\splitmix64\bin\x86_64-win32
+
+CXX      = cl
+CXXFLAGS = /nologo /std:c++14 /O2 /Oi /GL /LD /DNDEBUG /DLUA_BUILD_AS_DLL /DSPLITMIX64_EXT_LUAJIT /EHsc
+WARNINGS = /W3 /wd4100
+LDFLAGS  = /LTCG /OPT:REF /OPT:ICF /DEBUG:NONE /EXPORT:luaopen_splitmix64
+
+all: $(TARGET)
+
+$(TARGET): $(LUAJIT_MAIN) $(EXT_API)
+	@if not exist $(OUTDIR) mkdir $(OUTDIR)
+	$(CXX) $(CXXFLAGS) $(WARNINGS) $(INCLUDES) /Fe$(TARGET) $(LUAJIT_MAIN) $(EXT_API) /link $(LUAJIT_LIB) $(LDFLAGS)
+
+clean:
+	@if exist "$(TARGET)" del /Q "$(TARGET)"
